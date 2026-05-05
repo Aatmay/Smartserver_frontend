@@ -6,242 +6,191 @@ import toast from 'react-hot-toast';
 
 const Signup = () => {
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-    role: 'admin',
-    organization: '',
+    name: '', email: '', password: '', confirmPassword: '',
+    role: 'admin', organization: '', phone: '', location: '',
   });
   const [loading, setLoading] = useState(false);
   const [dark, setDark] = useState(true);
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (formData.password !== formData.confirmPassword) {
-      toast.error('Passwords do not match');
-      return;
-    }
-    if (formData.password.length < 6) {
-      toast.error('Password must be at least 6 characters');
+    if (formData.password !== formData.confirmPassword) { toast.error('Passwords do not match'); return; }
+    if (formData.password.length < 6) { toast.error('Password must be at least 6 characters'); return; }
+    if (!formData.name || !formData.email || !formData.organization) {
+      toast.error('Please fill all required fields');
       return;
     }
     setLoading(true);
     try {
-      const { data } = await API.post('/auth/signup', {
-        name: formData.name,
-        email: formData.email,
+      const payload = {
+        name: formData.name.trim(),
+        email: formData.email.trim(),
         password: formData.password,
         role: formData.role,
-        organization: formData.organization,
-      });
+        organization: formData.organization.trim(),
+        phone: formData.phone.trim(),
+        location: formData.location.trim(),
+      };
+      console.log('Sending signup payload:', payload);
+      const { data } = await API.post('/auth/signup', payload);
       login(data.user, data.token);
       toast.success(`Welcome to SmartServe, ${data.user.name}!`);
       if (data.user.role === 'admin') navigate('/admin');
       else navigate('/ngo');
     } catch (error) {
       toast.error(error.response?.data?.message || 'Signup failed');
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   };
 
   const t = dark ? themes.dark : themes.light;
 
   return (
     <div style={{ ...styles.container, background: t.bg }}>
-      {dark && <div style={styles.orb1} />}
-      {dark && <div style={styles.orb2} />}
+      <div style={{ ...styles.blob1, background: t.blob1 }} />
+      <div style={{ ...styles.blob2, background: t.blob2 }} />
 
-      {/* Theme Toggle */}
-      <button
-        onClick={() => setDark(!dark)}
-        style={{
-          ...styles.themeBtn,
-          background: t.card,
-          border: `1px solid ${t.border}`,
-          color: t.text,
-        }}
-      >
-        {dark ? '☀️ Light Mode' : '🌙 Dark Mode'}
+      <button onClick={() => setDark(!dark)} style={{ ...styles.themeBtn, background: t.card, border: `1px solid ${t.border}`, color: t.text }}>
+        {dark ? '☀️ Light' : '🌙 Dark'}
       </button>
 
-      <div style={{
-        ...styles.card,
-        background: t.card,
-        border: `1px solid ${t.border}`,
-        boxShadow: dark
-          ? '0 25px 60px rgba(0,0,0,0.6)'
-          : '0 25px 60px rgba(0,0,0,0.12)',
-      }}>
-
-        <div style={styles.logoWrapper}>
-          <div style={{
-            ...styles.logoBg,
-            background: dark
-              ? 'linear-gradient(135deg, rgba(124,58,237,0.3), rgba(219,39,119,0.3))'
-              : 'linear-gradient(135deg, rgba(124,58,237,0.1), rgba(219,39,119,0.1))',
-          }}>
-            <span style={styles.logoEmoji}>🍱</span>
+      <div style={{ ...styles.card, background: t.card, border: `1px solid ${t.border}` }}>
+        {/* Header Banner */}
+        <div style={{ ...styles.headerBanner, background: t.banner }}>
+          <span style={styles.bannerIcon}>🍱</span>
+          <div>
+            <h1 style={styles.bannerTitle}>SmartServe</h1>
+            <p style={styles.bannerSub}>Join the food sustainability movement</p>
           </div>
+          <div style={styles.bannerDecor}>🌿</div>
         </div>
 
-        <h1 style={{ ...styles.title, color: t.titleColor }}>Join SmartServe</h1>
-        <p style={{ ...styles.subtitle, color: t.muted }}>Create your account to get started</p>
+        <div style={styles.formBody}>
+          <h2 style={{ ...styles.formTitle, color: t.text }}>Create Your Account</h2>
 
-        <form onSubmit={handleSubmit} style={styles.form}>
+          <form onSubmit={handleSubmit} style={styles.form}>
 
-          <div style={styles.row}>
-            <div style={styles.inputGroup}>
-              <label style={{ ...styles.label, color: t.muted }}>Full Name</label>
-              <div style={{ ...styles.inputWrapper, background: t.inputBg, border: `1.5px solid ${t.inputBorder}` }}>
-                <span style={styles.inputIcon}>👤</span>
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  placeholder="Your full name"
-                  required
-                  style={{ ...styles.input, color: t.text }}
-                />
+            {/* Row 1: Name + Organization */}
+            <div style={styles.row}>
+              <div style={styles.inputGroup}>
+                <label style={{ ...styles.label, color: t.muted }}>Full Name</label>
+                <div style={{ ...styles.inputWrapper, background: t.inputBg, border: `1.5px solid ${t.inputBorder}` }}>
+                  <span style={styles.icon}>👤</span>
+                  <input type="text" name="name" value={formData.name} onChange={handleChange}
+                    placeholder="Your full name" required style={{ ...styles.input, color: t.text }} />
+                </div>
+              </div>
+              <div style={styles.inputGroup}>
+                <label style={{ ...styles.label, color: t.muted }}>Organization</label>
+                <div style={{ ...styles.inputWrapper, background: t.inputBg, border: `1.5px solid ${t.inputBorder}` }}>
+                  <span style={styles.icon}>🏢</span>
+                  <input type="text" name="organization" value={formData.organization} onChange={handleChange}
+                    placeholder="Canteen / NGO name" required style={{ ...styles.input, color: t.text }} />
+                </div>
               </div>
             </div>
+
+            {/* Email */}
             <div style={styles.inputGroup}>
-              <label style={{ ...styles.label, color: t.muted }}>Organization</label>
+              <label style={{ ...styles.label, color: t.muted }}>Email Address</label>
               <div style={{ ...styles.inputWrapper, background: t.inputBg, border: `1.5px solid ${t.inputBorder}` }}>
-                <span style={styles.inputIcon}>🏢</span>
-                <input
-                  type="text"
-                  name="organization"
-                  value={formData.organization}
-                  onChange={handleChange}
-                  placeholder="Canteen / NGO name"
-                  required
-                  style={{ ...styles.input, color: t.text }}
-                />
+                <span style={styles.icon}>✉️</span>
+                <input type="email" name="email" value={formData.email} onChange={handleChange}
+                  placeholder="you@example.com" required style={{ ...styles.input, color: t.text }} />
               </div>
             </div>
-          </div>
 
-          <div style={styles.inputGroup}>
-            <label style={{ ...styles.label, color: t.muted }}>Email Address</label>
-            <div style={{ ...styles.inputWrapper, background: t.inputBg, border: `1.5px solid ${t.inputBorder}` }}>
-              <span style={styles.inputIcon}>✉️</span>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="you@example.com"
-                required
-                style={{ ...styles.input, color: t.text }}
-              />
+            {/* Row 2: Phone + Location */}
+            <div style={styles.row}>
+              <div style={styles.inputGroup}>
+                <label style={{ ...styles.label, color: t.muted }}>Contact Number</label>
+                <div style={{ ...styles.inputWrapper, background: t.inputBg, border: `1.5px solid ${t.inputBorder}` }}>
+                  <span style={styles.icon}>📞</span>
+                  <input type="tel" name="phone" value={formData.phone} onChange={handleChange}
+                    placeholder="+91 9876543210" style={{ ...styles.input, color: t.text }} />
+                </div>
+              </div>
+              <div style={styles.inputGroup}>
+                <label style={{ ...styles.label, color: t.muted }}>Location / Area</label>
+                <div style={{ ...styles.inputWrapper, background: t.inputBg, border: `1.5px solid ${t.inputBorder}` }}>
+                  <span style={styles.icon}>📍</span>
+                  <input type="text" name="location" value={formData.location} onChange={handleChange}
+                    placeholder="Bandra, Mumbai" style={{ ...styles.input, color: t.text }} />
+                </div>
+              </div>
             </div>
-          </div>
 
-          {/* Role Selector */}
-          <div style={styles.inputGroup}>
-            <label style={{ ...styles.label, color: t.muted }}>Register as</label>
-            <div style={styles.roleRow}>
-              <div
-                onClick={() => setFormData({ ...formData, role: 'admin' })}
-                style={{
+            {/* Role Selector */}
+            <div style={styles.inputGroup}>
+              <label style={{ ...styles.label, color: t.muted }}>Register as</label>
+              <div style={styles.roleRow}>
+                <div onClick={() => setFormData({ ...formData, role: 'admin' })} style={{
                   ...styles.roleCard,
-                  border: formData.role === 'admin'
-                    ? '2px solid #7c3aed'
-                    : `1.5px solid ${t.inputBorder}`,
-                  background: formData.role === 'admin'
-                    ? (dark ? 'rgba(124,58,237,0.18)' : 'rgba(124,58,237,0.08)')
-                    : t.inputBg,
-                }}
-              >
-                <span style={styles.roleIcon}>🏫</span>
-                <span style={{ ...styles.roleLabel, color: t.text }}>Canteen Admin</span>
-                <span style={{ ...styles.roleDesc, color: t.muted }}>Manage food logs & predictions</span>
-              </div>
-              <div
-                onClick={() => setFormData({ ...formData, role: 'ngo' })}
-                style={{
+                  border: formData.role === 'admin' ? '2px solid #FF6B35' : `1.5px solid ${t.inputBorder}`,
+                  background: formData.role === 'admin' ? (dark ? 'rgba(255,107,53,0.15)' : 'rgba(255,107,53,0.08)') : t.inputBg,
+                }}>
+                  <span style={styles.roleEmoji}>🏫</span>
+                  <span style={{ ...styles.roleTitle, color: t.text }}>Canteen Admin</span>
+                  <span style={{ ...styles.roleDesc, color: t.muted }}>Manage food logs & predictions</span>
+                  {formData.role === 'admin' && <span style={styles.roleCheck}>✓</span>}
+                </div>
+                <div onClick={() => setFormData({ ...formData, role: 'ngo' })} style={{
                   ...styles.roleCard,
-                  border: formData.role === 'ngo'
-                    ? '2px solid #10b981'
-                    : `1.5px solid ${t.inputBorder}`,
-                  background: formData.role === 'ngo'
-                    ? (dark ? 'rgba(16,185,129,0.18)' : 'rgba(16,185,129,0.08)')
-                    : t.inputBg,
-                }}
-              >
-                <span style={styles.roleIcon}>🤝</span>
-                <span style={{ ...styles.roleLabel, color: t.text }}>NGO Partner</span>
-                <span style={{ ...styles.roleDesc, color: t.muted }}>Claim surplus food alerts</span>
+                  border: formData.role === 'ngo' ? '2px solid #2ECC71' : `1.5px solid ${t.inputBorder}`,
+                  background: formData.role === 'ngo' ? (dark ? 'rgba(46,204,113,0.15)' : 'rgba(46,204,113,0.08)') : t.inputBg,
+                }}>
+                  <span style={styles.roleEmoji}>🤝</span>
+                  <span style={{ ...styles.roleTitle, color: t.text }}>NGO Partner</span>
+                  <span style={{ ...styles.roleDesc, color: t.muted }}>Claim surplus food alerts</span>
+                  {formData.role === 'ngo' && <span style={{ ...styles.roleCheck, background: '#2ECC71' }}>✓</span>}
+                </div>
               </div>
             </div>
-          </div>
 
-          <div style={styles.row}>
-            <div style={styles.inputGroup}>
-              <label style={{ ...styles.label, color: t.muted }}>Password</label>
-              <div style={{ ...styles.inputWrapper, background: t.inputBg, border: `1.5px solid ${t.inputBorder}` }}>
-                <span style={styles.inputIcon}>🔐</span>
-                <input
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  placeholder="Min 6 characters"
-                  required
-                  style={{ ...styles.input, color: t.text }}
-                />
+            {/* Passwords */}
+            <div style={styles.row}>
+              <div style={styles.inputGroup}>
+                <label style={{ ...styles.label, color: t.muted }}>Password</label>
+                <div style={{ ...styles.inputWrapper, background: t.inputBg, border: `1.5px solid ${t.inputBorder}` }}>
+                  <span style={styles.icon}>🔐</span>
+                  <input type="password" name="password" value={formData.password} onChange={handleChange}
+                    placeholder="Min 6 characters" required style={{ ...styles.input, color: t.text }} />
+                </div>
+              </div>
+              <div style={styles.inputGroup}>
+                <label style={{ ...styles.label, color: t.muted }}>Confirm Password</label>
+                <div style={{ ...styles.inputWrapper, background: t.inputBg, border: `1.5px solid ${t.inputBorder}` }}>
+                  <span style={styles.icon}>🔐</span>
+                  <input type="password" name="confirmPassword" value={formData.confirmPassword} onChange={handleChange}
+                    placeholder="Re-enter password" required style={{ ...styles.input, color: t.text }} />
+                </div>
               </div>
             </div>
-            <div style={styles.inputGroup}>
-              <label style={{ ...styles.label, color: t.muted }}>Confirm Password</label>
-              <div style={{ ...styles.inputWrapper, background: t.inputBg, border: `1.5px solid ${t.inputBorder}` }}>
-                <span style={styles.inputIcon}>🔐</span>
-                <input
-                  type="password"
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  placeholder="Re-enter password"
-                  required
-                  style={{ ...styles.input, color: t.text }}
-                />
-              </div>
-            </div>
-          </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            style={{
-              ...styles.button,
+            <button type="submit" disabled={loading} style={{
+              ...styles.submitBtn,
               background: formData.role === 'ngo'
-                ? 'linear-gradient(135deg, #059669, #10b981)'
-                : 'linear-gradient(135deg, #7c3aed, #db2777)',
+                ? 'linear-gradient(135deg, #27AE60, #2ECC71)'
+                : 'linear-gradient(135deg, #FF6B35, #FF8C00)',
               boxShadow: formData.role === 'ngo'
-                ? '0 8px 25px rgba(16,185,129,0.45)'
-                : '0 8px 25px rgba(124,58,237,0.45)',
+                ? '0 8px 25px rgba(46,204,113,0.4)'
+                : '0 8px 25px rgba(255,107,53,0.4)',
               opacity: loading ? 0.7 : 1,
-            }}
-          >
-            {loading ? '⏳ Creating Account...' : 'Create Account →'}
-          </button>
-        </form>
+            }}>
+              {loading ? '⏳ Creating Account...' : 'Create Account →'}
+            </button>
+          </form>
 
-        <p style={{ ...styles.footerText, color: t.muted }}>
-          Already have an account?{' '}
-          <Link to="/login" style={{ ...styles.link, color: dark ? '#a78bfa' : '#7c3aed' }}>
-            Sign in here
-          </Link>
-        </p>
+          <p style={{ ...styles.footerText, color: t.muted }}>
+            Already have an account?{' '}
+            <Link to="/login" style={{ color: '#FF6B35', fontWeight: '700', textDecoration: 'none' }}>
+              Sign in
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );
@@ -249,192 +198,56 @@ const Signup = () => {
 
 const themes = {
   dark: {
-    bg: '#0d0d14',
-    card: 'rgba(255,255,255,0.05)',
-    border: 'rgba(255,255,255,0.1)',
-    inputBg: 'rgba(255,255,255,0.07)',
-    inputBorder: 'rgba(255,255,255,0.12)',
-    text: '#ffffff',
-    titleColor: '#ffffff',
-    muted: 'rgba(255,255,255,0.45)',
+    bg: '#1A0A00', card: '#2A1500',
+    banner: 'linear-gradient(135deg, #FF6B35, #CC4400)',
+    border: 'rgba(255,107,53,0.3)', inputBg: 'rgba(255,107,53,0.08)',
+    inputBorder: 'rgba(255,107,53,0.25)',
+    text: '#FFF8F0', muted: 'rgba(255,248,240,0.5)',
+    blob1: 'radial-gradient(circle, rgba(255,107,53,0.2) 0%, transparent 70%)',
+    blob2: 'radial-gradient(circle, rgba(46,204,113,0.15) 0%, transparent 70%)',
   },
   light: {
-    bg: '#f0f2f8',
-    card: '#ffffff',
-    border: '#e2e8f0',
-    inputBg: '#f8fafc',
-    inputBorder: '#cbd5e1',
-    text: '#1e293b',
-    titleColor: '#1e293b',
-    muted: '#64748b',
+    bg: '#FFF8F0', card: '#FFFFFF',
+    banner: 'linear-gradient(135deg, #FF6B35, #FF8C5A)',
+    border: '#FFD4B8', inputBg: '#FFF3EC', inputBorder: '#FFBA9A',
+    text: '#2D1200', muted: '#8B5E3C',
+    blob1: 'radial-gradient(circle, rgba(255,107,53,0.15) 0%, transparent 70%)',
+    blob2: 'radial-gradient(circle, rgba(46,204,113,0.1) 0%, transparent 70%)',
   },
 };
 
 const styles = {
   container: {
-    minHeight: '100vh',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontFamily: "'Segoe UI', system-ui, sans-serif",
-    position: 'relative',
-    overflow: 'hidden',
-    padding: '40px 16px',
+    minHeight: '100vh', display: 'flex', alignItems: 'center',
+    justifyContent: 'center', fontFamily: "'Segoe UI', system-ui, sans-serif",
+    position: 'relative', overflow: 'hidden', padding: '40px 16px',
   },
-  orb1: {
-    position: 'absolute',
-    width: '500px',
-    height: '500px',
-    borderRadius: '50%',
-    background: 'radial-gradient(circle, rgba(124,58,237,0.25) 0%, transparent 70%)',
-    top: '-150px',
-    left: '-150px',
-    pointerEvents: 'none',
-  },
-  orb2: {
-    position: 'absolute',
-    width: '400px',
-    height: '400px',
-    borderRadius: '50%',
-    background: 'radial-gradient(circle, rgba(16,185,129,0.2) 0%, transparent 70%)',
-    bottom: '-100px',
-    right: '-100px',
-    pointerEvents: 'none',
-  },
-  themeBtn: {
-    position: 'fixed',
-    top: '20px',
-    right: '20px',
-    padding: '8px 18px',
-    borderRadius: '10px',
-    cursor: 'pointer',
-    fontSize: '13px',
-    fontWeight: '600',
-    zIndex: 100,
-    backdropFilter: 'blur(10px)',
-  },
-  card: {
-    backdropFilter: 'blur(24px)',
-    borderRadius: '24px',
-    padding: '44px 40px',
-    width: '100%',
-    maxWidth: '580px',
-    position: 'relative',
-    zIndex: 1,
-  },
-  logoWrapper: {
-    display: 'flex',
-    justifyContent: 'center',
-    marginBottom: '20px',
-  },
-  logoBg: {
-    width: '72px',
-    height: '72px',
-    borderRadius: '20px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  logoEmoji: { fontSize: '36px' },
-  title: {
-    fontSize: '28px',
-    fontWeight: '800',
-    textAlign: 'center',
-    margin: '0 0 8px 0',
-    letterSpacing: '-0.5px',
-  },
-  subtitle: {
-    fontSize: '14px',
-    textAlign: 'center',
-    marginBottom: '28px',
-  },
-  form: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '16px',
-  },
-  row: {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: '14px',
-  },
-  inputGroup: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '7px',
-  },
-  label: {
-    fontSize: '11px',
-    fontWeight: '700',
-    letterSpacing: '0.8px',
-    textTransform: 'uppercase',
-  },
-  inputWrapper: {
-    display: 'flex',
-    alignItems: 'center',
-    borderRadius: '11px',
-    padding: '0 14px',
-  },
-  inputIcon: {
-    fontSize: '15px',
-    marginRight: '10px',
-    flexShrink: 0,
-  },
-  input: {
-    background: 'transparent',
-    border: 'none',
-    outline: 'none',
-    fontSize: '14px',
-    padding: '12px 0',
-    width: '100%',
-    fontFamily: 'inherit',
-  },
-  roleRow: {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: '12px',
-  },
-  roleCard: {
-    padding: '16px 12px',
-    borderRadius: '12px',
-    cursor: 'pointer',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: '4px',
-    textAlign: 'center',
-    transition: 'all 0.2s',
-  },
-  roleIcon: { fontSize: '28px', marginBottom: '4px' },
-  roleLabel: {
-    fontSize: '13px',
-    fontWeight: '700',
-  },
-  roleDesc: {
-    fontSize: '11px',
-    lineHeight: 1.4,
-  },
-  button: {
-    padding: '14px',
-    borderRadius: '12px',
-    border: 'none',
-    color: 'white',
-    fontSize: '15px',
-    fontWeight: '700',
-    cursor: 'pointer',
-    marginTop: '6px',
-    letterSpacing: '0.3px',
-    transition: 'opacity 0.2s',
-  },
-  footerText: {
-    textAlign: 'center',
-    marginTop: '20px',
-    fontSize: '14px',
-  },
-  link: {
-    fontWeight: '700',
-    textDecoration: 'none',
-  },
+  blob1: { position: 'fixed', width: '500px', height: '500px', borderRadius: '50%', top: '-150px', left: '-150px', pointerEvents: 'none' },
+  blob2: { position: 'fixed', width: '400px', height: '400px', borderRadius: '50%', bottom: '-150px', right: '-150px', pointerEvents: 'none' },
+  themeBtn: { position: 'fixed', top: '20px', right: '20px', padding: '8px 18px', borderRadius: '20px', cursor: 'pointer', fontSize: '13px', fontWeight: '600', zIndex: 100, backdropFilter: 'blur(10px)' },
+  card: { borderRadius: '24px', width: '100%', maxWidth: '640px', overflow: 'hidden', position: 'relative', zIndex: 1, boxShadow: '0 30px 80px rgba(0,0,0,0.35)' },
+  headerBanner: { padding: '24px 32px', display: 'flex', alignItems: 'center', gap: '16px', position: 'relative', overflow: 'hidden' },
+  bannerIcon: { fontSize: '44px', filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.3))' },
+  bannerTitle: { fontSize: '24px', fontWeight: '800', color: 'white', margin: 0 },
+  bannerSub: { fontSize: '13px', color: 'rgba(255,255,255,0.85)', margin: '4px 0 0 0', fontStyle: 'italic' },
+  bannerDecor: { fontSize: '60px', position: 'absolute', right: '20px', opacity: 0.3 },
+  formBody: { padding: '24px 32px 32px' },
+  formTitle: { fontSize: '22px', fontWeight: '800', margin: '0 0 18px 0' },
+  form: { display: 'flex', flexDirection: 'column', gap: '14px' },
+  row: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' },
+  inputGroup: { display: 'flex', flexDirection: 'column', gap: '7px' },
+  label: { fontSize: '11px', fontWeight: '700', letterSpacing: '0.8px', textTransform: 'uppercase' },
+  inputWrapper: { display: 'flex', alignItems: 'center', borderRadius: '11px', padding: '0 14px' },
+  icon: { fontSize: '15px', marginRight: '10px', flexShrink: 0 },
+  input: { background: 'transparent', border: 'none', outline: 'none', fontSize: '14px', padding: '12px 0', width: '100%', fontFamily: 'inherit' },
+  roleRow: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' },
+  roleCard: { padding: '14px', borderRadius: '12px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', textAlign: 'center', transition: 'all 0.2s', position: 'relative' },
+  roleEmoji: { fontSize: '26px', marginBottom: '4px' },
+  roleTitle: { fontSize: '13px', fontWeight: '700' },
+  roleDesc: { fontSize: '11px', lineHeight: 1.4 },
+  roleCheck: { position: 'absolute', top: '8px', right: '8px', background: '#FF6B35', color: 'white', borderRadius: '50%', width: '18px', height: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: '700' },
+  submitBtn: { padding: '14px', borderRadius: '12px', border: 'none', color: 'white', fontSize: '15px', fontWeight: '700', cursor: 'pointer', marginTop: '4px', letterSpacing: '0.3px' },
+  footerText: { textAlign: 'center', marginTop: '18px', fontSize: '14px' },
 };
 
 export default Signup;
